@@ -1,3 +1,1 @@
-CodeCrafters CLI to run tests
-
-https://docs.codecrafters.io/cli/installation
+A stripped down version of the [CodeCrafters CLI](https://github.com/codecrafters-io/cli) used in [CoderBot](https://github.com/codecrafters-io/coderbot).
