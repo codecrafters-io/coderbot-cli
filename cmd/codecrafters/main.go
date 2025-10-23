@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/codecrafters-io/cli/internal/commands"
-	"github.com/codecrafters-io/cli/internal/utils"
+	"github.com/codecrafters-io/coderbot-cli/internal/commands"
+	"github.com/codecrafters-io/coderbot-cli/internal/utils"
 	"github.com/fatih/color"
 )
 

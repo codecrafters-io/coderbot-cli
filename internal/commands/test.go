@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codecrafters-io/cli/internal/utils"
+	"github.com/codecrafters-io/coderbot-cli/internal/utils"
 	"github.com/getsentry/sentry-go"
 	cp "github.com/otiai10/copy"
 	"github.com/rs/zerolog"

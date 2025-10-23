@@ -1,4 +1,4 @@
-module github.com/codecrafters-io/cli
+module github.com/codecrafters-io/coderbot-cli
 
 go 1.22.4
 
