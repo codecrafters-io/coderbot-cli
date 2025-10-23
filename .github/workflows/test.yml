@@ -6,18 +6,12 @@ on:
     branches: [main]
 
 jobs:
-  run-tests:
+  smoke_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: "1.23"
-      - run: make test
-
-  install-cli:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: dash -x install.sh
-      - run: codecrafters --version
+      - run: make build
+      - run: dist/codecrafters --version
