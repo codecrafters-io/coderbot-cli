@@ -74,7 +74,7 @@ func TestCommand(ctx context.Context, shouldTestPrevious bool) (err error) {
 
 	logger.Debug().Msgf("copied repository to temp directory: %s", tmpDir)
 
-	tempBranchName := "cli-test-" + strconv.FormatInt(time.Now().UnixMilli(), 10)
+	tempBranchName := "coderbot-test-" + strconv.FormatInt(time.Now().UnixMilli(), 10)
 
 	logger.Debug().Msgf("creating temp branch: %s", tempBranchName)
 
@@ -102,22 +102,16 @@ func TestCommand(ctx context.Context, shouldTestPrevious bool) (err error) {
 
 	codecraftersClient := utils.NewCodecraftersClient(codecraftersRemote.CodecraftersServerURL())
 
-	logger.Debug().Msgf("creating submission for %s", tempCommitSha)
+	logger.Debug().Msgf("creating test run for %s", tempCommitSha)
 
-	stageSelectionStrategy := "current_and_previous_descending"
-
-	if shouldTestPrevious {
-		stageSelectionStrategy = "current_and_previous_ascending"
-	}
-
-	createSubmissionResponse, err := codecraftersClient.CreateSubmission(codecraftersRemote.CodecraftersRepositoryId(), tempCommitSha, "test", stageSelectionStrategy)
+	createTestRunResponse, err := codecraftersClient.CreateTestRun(os.Getenv("CODECRAFTERS_AUTOFIX_REQUEST_ID"), tempCommitSha)
 	if err != nil {
-		return fmt.Errorf("create submission: %w", err)
+		return fmt.Errorf("create test run: %w", err)
 	}
 
-	logger.Debug().Msgf("submission created: %v", createSubmissionResponse.Id)
+	logger.Debug().Msgf("test run created: %v", createTestRunResponse.ID)
 
-	return utils.HandleSubmission(createSubmissionResponse, ctx, codecraftersClient)
+	return utils.HandleTestRun(createTestRunResponse, ctx, codecraftersClient)
 }
 
 func copyRepositoryDirToTempDir(repoDir string) (string, error) {

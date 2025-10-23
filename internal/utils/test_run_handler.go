@@ -13,19 +13,14 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func HandleSubmission(createSubmissionResponse CreateSubmissionResponse, ctx context.Context, codecraftersClient CodecraftersClient) (err error) {
+func HandleTestRun(createTestRunResponse CreateTestRunResponse, ctx context.Context, codecraftersClient CodecraftersClient) (err error) {
 	logger := zerolog.Ctx(ctx)
 
-	for _, message := range createSubmissionResponse.OnInitMessages {
-		fmt.Println("")
-		message.Print()
-	}
-
-	if createSubmissionResponse.BuildLogstreamURL != "" {
-		logger.Debug().Msgf("streaming build logs from %s", createSubmissionResponse.BuildLogstreamURL)
+	if createTestRunResponse.PendingBuildLogstreamURL != "" {
+		logger.Debug().Msgf("streaming build logs from %s", createTestRunResponse.PendingBuildLogstreamURL)
 
 		fmt.Println("")
-		err = streamLogs(createSubmissionResponse.BuildLogstreamURL)
+		err = streamLogs(createTestRunResponse.PendingBuildLogstreamURL)
 		if err != nil {
 			return fmt.Errorf("stream build logs: %w", err)
 		}
@@ -33,13 +28,13 @@ func HandleSubmission(createSubmissionResponse CreateSubmissionResponse, ctx con
 		logger.Debug().Msg("Finished streaming build logs")
 		logger.Debug().Msg("fetching build")
 
-		fetchBuildResponse, err := codecraftersClient.FetchBuild(createSubmissionResponse.BuildID)
+		fetchBuildResponse, err := codecraftersClient.FetchBuild(createTestRunResponse.PendingBuildID)
 		if err != nil {
 			// TODO: Notify sentry
 			red := color.New(color.FgRed).SprintFunc()
 			fmt.Fprintln(os.Stderr, red(err.Error()))
 			fmt.Fprintln(os.Stderr, "")
-			fmt.Fprintln(os.Stderr, red("We couldn't fetch the results of your submission. Please try again?"))
+			fmt.Fprintln(os.Stderr, red("We couldn't fetch the results of your test run. Please try again?"))
 			fmt.Fprintln(os.Stderr, red("Let us know at hello@codecrafters.io if this error persists."))
 			return err
 		}
@@ -69,50 +64,46 @@ func HandleSubmission(createSubmissionResponse CreateSubmissionResponse, ctx con
 	fmt.Println("Running tests. Logs should appear shortly...")
 	fmt.Println("")
 
-	err = streamLogs(createSubmissionResponse.LogstreamURL)
+	err = streamLogs(createTestRunResponse.LogstreamURL)
 	if err != nil {
 		return fmt.Errorf("stream logs: %w", err)
 	}
 
-	logger.Debug().Msgf("fetching submission %s", createSubmissionResponse.Id)
+	logger.Debug().Msgf("fetching test run %s", createTestRunResponse.ID)
 
-	fetchSubmissionResponse, err := codecraftersClient.FetchSubmission(createSubmissionResponse.Id)
+	fetchTestRunResponse, err := codecraftersClient.FetchTestRun(createTestRunResponse.ID)
 	if err != nil {
 		// TODO: Notify sentry
 		red := color.New(color.FgRed).SprintFunc()
 		fmt.Fprintln(os.Stderr, red(err.Error()))
 		fmt.Fprintln(os.Stderr, "")
-		fmt.Fprintln(os.Stderr, red("We couldn't fetch the results of your submission. Please try again?"))
+		fmt.Fprintln(os.Stderr, red("We couldn't fetch the results of your test run. Please try again?"))
 		fmt.Fprintln(os.Stderr, red("Let us know at hello@codecrafters.io if this error persists."))
 		return err
 	}
 
-	logger.Debug().Msgf("finished fetching submission, status: %s", fetchSubmissionResponse.Status)
+	logger.Debug().Msgf("finished fetching test run, status: %s", fetchTestRunResponse.Status)
 
-	switch fetchSubmissionResponse.Status {
+	switch fetchTestRunResponse.Status {
 	case "failure":
-		for _, message := range createSubmissionResponse.OnFailureMessages {
-			fmt.Println("")
-			message.Print()
-		}
+		fmt.Println("")
+		fmt.Println("Tests failed")
 	case "success":
-		for _, message := range createSubmissionResponse.OnSuccessMessages {
-			fmt.Println("")
-			message.Print()
-		}
+		fmt.Println("")
+		fmt.Println("Tests passed!")
 	default:
 		fmt.Println("")
 	}
 
-	if fetchSubmissionResponse.IsError {
-		return fmt.Errorf("%s", fetchSubmissionResponse.ErrorMessage)
+	if fetchTestRunResponse.IsError {
+		return fmt.Errorf("%s", fetchTestRunResponse.ErrorMessage)
 	}
 
 	return nil
 }
 
-func streamLogs(logstreamUrl string) error {
-	consumer, err := logstream_redis.NewConsumer(logstreamUrl)
+func streamLogs(logstreamURL string) error {
+	consumer, err := logstream_redis.NewConsumer(logstreamURL)
 	if err != nil {
 		return fmt.Errorf("new log consumer: %w", err)
 	}
