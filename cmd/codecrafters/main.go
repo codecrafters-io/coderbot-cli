@@ -24,14 +24,6 @@ USAGE
 
 EXAMPLES
   $ codecrafters test              # Run tests without committing changes
-  $ codecrafters test --previous   # Run tests for the current stage and all previous stages without committing changes
-  $ codecrafters submit            # Commit changes & submit to move to next step
-
-COMMANDS
-  test:             Run tests without committing changes
-  submit:           Commit changes & submit to move to next step
-  update-buildpack: Update buildpack configuration
-  help:             Show usage instructions
 
 VERSION
   %s
@@ -83,10 +75,6 @@ func run() error {
 		testCmd.Parse(flag.Args()[1:]) // parse the args after the test command
 
 		return commands.TestCommand(ctx, *shouldTestPrevious)
-	case "submit":
-		return commands.SubmitCommand(ctx)
-	case "update-buildpack":
-		return commands.UpdateBuildpackCommand(ctx)
 	case "help",
 		"": // no argument
 		flag.Usage()
@@ -99,13 +87,4 @@ func run() error {
 	}
 
 	return nil
-}
-
-func envOr(name, defaultVal string) string {
-	v, ok := os.LookupEnv(name)
-	if ok {
-		return v
-	}
-
-	return defaultVal
 }
